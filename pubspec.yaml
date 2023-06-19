@@ -12,6 +12,7 @@ dependencies:
   path: 
   ansicolor: 
   console: 
+  yaml:
 
 dev_dependencies:
   lints:

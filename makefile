@@ -5,5 +5,4 @@ run:
 
 build:
 	@echo "Building the dart application ... "
-	@dart compile exe lib/main.dart -o bin/xcopy
-	
+	@dart compile exe lib/main.dart -o bin/retouch
