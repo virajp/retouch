@@ -2,16 +2,12 @@ import 'dart:io';
 import 'package:ansicolor/ansicolor.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
-import 'package:retouch/test.dart';
 
 final greenPen = AnsiPen()..green();
 final redPen = AnsiPen()..red();
 final yellowPen = AnsiPen()..yellow();
 late bool dryRun;
 const String retouchFileName = '.retouch';
-// final String clearLine = '\r${"".padRight(stdout.terminalColumns)}\r';
-// const String clearLine = '\r';
-// const String aboveLine = '\x1b[1A\r';
 
 Future<int> main(List<String> arguments) async {
   late bool help;
@@ -47,20 +43,18 @@ Future<int> printUsage(String usage) async {
 }
 
 Future<int> retouch() async {
-  stdout.writeln('Scanning folders ... ');
-
+  stdout.write('Scanning folders ... ');
   List<Directory> folders = [];
   var dir = Directory.current;
   await for (var file in dir.list(recursive: true, followLinks: false)) {
     if(file is Directory) {
-      stdout.write(truncate(file.path));
       folders.add(file);
     }
   }
-  stdout.writeln('Scanning folders ... ${greenPen("done")}');
+  stdout.writeln(greenPen("done"));
 
   for (var folder in folders) {
-    stdout.writeln('Retouching files ... ');
+    stdout.writeln('Retouching files in: ${folder.path.replaceAll(dir.path, '.')}');
     if (fileExists(fileName: retouchFileName, filePath: folder.path)) {
       await processRetouchFile(folder);
     }
@@ -95,20 +89,13 @@ Future<void> processRetouchFile(Directory folder) async {
     var fileTime = DateTime.parse(eachLineSplit[1]);
     var file = File(path.join(folder.path, fileName));
     if (file.existsSync()) {
-      stdout.write(truncate(fileName));
-      if (file.lastModifiedSync() == fileTime) {
-        stdout.writeln(' ... ${yellowPen("skipped")}');
-      } else {
-        if (dryRun) {
-          stdout.write(' ... ${greenPen("dry-run")}');
-        } else {
-          stdout.write(' ... ${greenPen("done")}');
+      if (file.lastModifiedSync() != fileTime) {
+        if (!dryRun) {
           await file.setLastModified(fileTime);
         }
       }
     }
   }
-  stdout.write(clearLine);
   return;
 }
 
